@@ -1,0 +1,6 @@
+# Node data, keystores, passwords and backups must never be committed
+instances/
+backups/
+*.bak-*
+*.tar.gz
+.env

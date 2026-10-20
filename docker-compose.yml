@@ -1,0 +1,31 @@
+# One compose file, many instances.
+# Do not run this file directly; use ./znn.sh, which passes the
+# per-instance env file (instances/<name>/.env) and project name.
+
+services:
+  znnd:
+    image: go-zenon:${ZNN_VERSION:?ZNN_VERSION not set}
+    container_name: znn-${INSTANCE:?INSTANCE not set}
+    restart: unless-stopped
+    init: true
+    # Host networking: no NAT for the p2p layer and Docker does not bypass
+    # your host firewall (ufw). Every instance therefore needs its own ports.
+    network_mode: host
+    stop_grace_period: 60s
+    volumes:
+      - ${DATA_DIR:?DATA_DIR not set}:/home/znn/.znn
+    command:
+      - --port=${P2P_PORT:-35995}
+      - --http-port=${HTTP_PORT:-35997}
+      - --http-addr=${RPC_ADDR:-127.0.0.1}
+      - --ws-port=${WS_PORT:-35998}
+      - --ws-addr=${RPC_ADDR:-127.0.0.1}
+    ulimits:
+      nofile:
+        soft: 32768
+        hard: 32768
+    logging:
+      driver: json-file
+      options:
+        max-size: "50m"
+        max-file: "5"
