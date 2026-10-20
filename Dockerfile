@@ -27,6 +27,18 @@ RUN git clone --depth 1 --branch "${ZNN_VERSION}" "${ZNN_REPO}" go-zenon \
 WORKDIR /src/go-zenon
 COPY tools/producer-keygen/main.go cmd/producer-keygen/main.go
 
+# Local patches (see patches/README.md). The build fails loudly if a patch no
+# longer applies to a new go-zenon version; set ZNN_PATCHES=0 to skip them.
+ARG ZNN_PATCHES=1
+COPY patches/ /src/patches/
+RUN if [ "${ZNN_PATCHES}" = "1" ]; then \
+      for p in /src/patches/*.patch; do \
+        [ -e "$p" ] || continue; \
+        echo "Applying $(basename "$p")"; \
+        git apply --verbose "$p" || { echo "Patch $(basename "$p") does not apply to ${ZNN_VERSION}. Update the patch or build with --build-arg ZNN_PATCHES=0"; exit 1; }; \
+      done; \
+    else echo "Skipping local patches"; fi
+
 # znnd needs cgo (C compiler is included in the golang image).
 ENV CGO_ENABLED=1
 RUN go build -trimpath -ldflags "-s -w" -o /out/znnd ./cmd/znnd \

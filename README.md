@@ -116,9 +116,12 @@ in plain text in `config.json`.
 4. In Syrius, register (or update) your Pillar with that **producer address**.
 5. Back up `data/wallet/producer` and `data/config.json` somewhere safe.
 
-> ⚠️ znnd prints its full configuration — including the producer password —
-> to stdout on startup, so it ends up in `docker logs`. Treat the host's Docker
-> logs as sensitive (only root / the `docker` group can read them).
+> ℹ️ Upstream `znnd` prints its full configuration — including the producer
+> password — to stdout on startup. Images built from this repo apply
+> [`patches/0001-redact-producer-password-in-logs.patch`](patches/README.md),
+> so `docker logs` shows `"Password": "<redacted>"` instead. The password itself
+> is still stored in plain text in `config.json` (znnd needs it to unlock the
+> keystore), so keep `data/` readable for root and the container user only.
 
 ## Migrating an existing node
 
@@ -142,6 +145,7 @@ do no harm.
 
 ```
 Dockerfile                     multi-stage build: znnd + producer-keygen from a git tag
+patches/                       small fixes applied to go-zenon at build time
 docker-compose.yml             service template, filled per instance by znn.sh
 znn.sh                         build / init / up / update / rollback / keygen / backup
 tools/producer-keygen/main.go  keystore generator using go-zenon's wallet package
@@ -149,7 +153,7 @@ instances/                     per-instance .env and data (git-ignored)
 backups/                       backups (git-ignored)
 ```
 
-Build arguments: `ZNN_VERSION` (required), `ZNN_REPO`, `ZNN_UID`/`ZNN_GID`
+Build arguments: `ZNN_VERSION` (required), `ZNN_REPO`, `ZNN_PATCHES` (default 1), `ZNN_UID`/`ZNN_GID`
 (default 1000), `GO_VERSION` (default 1.24), `DEBIAN_VERSION` (default bookworm).
 `znn.sh` honours `ZNN_REPO`, `ZNN_UID` and `ZNN_GID` from the environment.
 
