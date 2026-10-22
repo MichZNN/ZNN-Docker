@@ -1,4 +1,4 @@
-# znn-docker
+# ZNN-Docker
 
 Run a [Zenon Network](https://zenon.network) node (`znnd` from
 [go-zenon](https://github.com/zenon-network/go-zenon)) — optionally as a
@@ -164,5 +164,5 @@ non-producing instance first.
 
 ## License
 
-`producer-keygen` links against go-zenon (GPL-3.0); this repository is
-therefore intended to be distributed under GPL-3.0.
+GPL-3.0, see [LICENSE](LICENSE). `producer-keygen` links against
+[go-zenon](https://github.com/zenon-network/go-zenon), which is GPL-3.0 as well.
