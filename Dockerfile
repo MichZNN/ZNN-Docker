@@ -8,8 +8,12 @@
 # works for both amd64 and arm64 and lets us compile producer-keygen against
 # exactly the same go-zenon code as znnd.
 
+# The container's own base OS. It is independent of the host OS: the image
+# runs on any Linux host with Docker (Debian, Ubuntu, Fedora, ...).
+# znn.sh passes the codename of the current Debian stable automatically;
+# build and runtime stage always use the same codename so glibc matches.
 ARG GO_VERSION=1.24
-ARG DEBIAN_VERSION=bookworm
+ARG DEBIAN_VERSION=trixie
 
 ############################
 # Build stage

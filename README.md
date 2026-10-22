@@ -22,7 +22,8 @@ small Go tool.
 
 ## Requirements
 
-- Linux host with Docker Engine + the Compose plugin (`docker compose`)
+- Any Linux host (Debian, Ubuntu, Fedora, ...) on amd64 or arm64 with
+  Docker Engine + the Compose plugin (`docker compose`)
 - `git` and `curl`
 - NTP active on the host (`timedatectl` should show *System clock synchronized: yes*)
 
@@ -153,9 +154,22 @@ instances/                     per-instance .env and data (git-ignored)
 backups/                       backups (git-ignored)
 ```
 
-Build arguments: `ZNN_VERSION` (required), `ZNN_REPO`, `ZNN_PATCHES` (default 1), `ZNN_UID`/`ZNN_GID`
-(default 1000), `GO_VERSION` (default 1.24), `DEBIAN_VERSION` (default bookworm).
-`znn.sh` honours `ZNN_REPO`, `ZNN_UID` and `ZNN_GID` from the environment.
+### Build settings
+
+| Variable | Default | Meaning |
+|---|---|---|
+| `ZNN_VERSION` | newest tag (`znn.sh`) | go-zenon release tag to build (required for plain `docker build`) |
+| `ZNN_REPO` | official go-zenon repo | git URL to build from |
+| `ZNN_PATCHES` | `1` | apply `patches/*.patch` (`0` = build upstream as-is) |
+| `ZNN_UID` / `ZNN_GID` | `1000` | user/group the node runs as inside the container |
+| `GO_VERSION` | `1.24` | Go toolchain, same as go-zenon's own release builds |
+| `DEBIAN_VERSION` | `stable` (`znn.sh`) / `trixie` (Dockerfile) | base OS **inside the container** |
+
+`DEBIAN_VERSION` is only the container's base image, not your host OS. With
+`znn.sh` the default `stable` is resolved to the codename of the current Debian
+stable at build time, so new builds follow Debian releases automatically; set
+e.g. `DEBIAN_VERSION=trixie` to pin it. All variables can be set in the
+environment when calling `znn.sh`, e.g. `GO_VERSION=1.25 ./znn.sh build`.
 
 ## Disclaimer
 

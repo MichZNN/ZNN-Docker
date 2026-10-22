@@ -18,6 +18,7 @@ IMAGE_NAME="go-zenon"
 ZNN_REPO="${ZNN_REPO:-https://github.com/zenon-network/go-zenon.git}"
 ZNN_UID="${ZNN_UID:-1000}"
 ZNN_GID="${ZNN_GID:-1000}"
+GO_VERSION="${GO_VERSION:-1.24}"   # go-zenon's own release builds use Go 1.24
 
 # ---------- helpers ---------------------------------------------------------
 
@@ -95,12 +96,25 @@ cmd_versions() {
   git ls-remote --tags --refs "${ZNN_REPO}" | awk -F/ '{print $3}' | sort -V
 }
 
+resolve_debian() { # DEBIAN_VERSION=stable (default) -> codename of current Debian stable
+  local d="${DEBIAN_VERSION:-stable}"
+  if [[ "$d" == "stable" ]]; then
+    docker pull -q debian:stable-slim >/dev/null || die "could not pull debian:stable-slim"
+    d="$(docker run --rm debian:stable-slim sh -c '. /etc/os-release; echo "$VERSION_CODENAME"')"
+    [[ -n "$d" ]] || die "could not determine Debian stable codename (set DEBIAN_VERSION=trixie)"
+  fi
+  echo "$d"
+}
+
 cmd_build() {
   need docker
-  local v; v="$(resolve_version "${1:-}")"
-  info "Building ${IMAGE_NAME}:${v} from ${ZNN_REPO}"
+  local v deb; v="$(resolve_version "${1:-}")"
+  deb="$(resolve_debian)"
+  info "Building ${IMAGE_NAME}:${v} from ${ZNN_REPO} (base: Debian ${deb}, Go ${GO_VERSION})"
   docker build \
     --build-arg "ZNN_VERSION=${v}" \
+    --build-arg "DEBIAN_VERSION=${deb}" \
+    --build-arg "GO_VERSION=${GO_VERSION}" \
     --build-arg "ZNN_REPO=${ZNN_REPO}" \
     --build-arg "ZNN_UID=${ZNN_UID}" \
     --build-arg "ZNN_GID=${ZNN_GID}" \
